@@ -1,313 +1,250 @@
 const express = require('express');
-
 const cors = require('cors');
-
 const db = require('./db');
 
 const app = express();
 
 app.use(cors());
-
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('MoneyTrack API funcionando');
-});
+/* =====================
+   USUÁRIOS
+===================== */
 
 app.get('/usuarios', (req, res) => {
-
-    const sql = 'SELECT * FROM usuarios';
-
-    db.query(sql, (err, result) => {
-
-        if(err){
-            console.log(err);
-            res.send('Erro no banco');
-            return;
-        }
-
+    db.query('SELECT * FROM usuarios', (err, result) => {
+        if (err) return res.status(500).send('Erro');
         res.json(result);
-
     });
-
 });
 
-app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
-});
 app.post('/usuarios', (req, res) => {
 
     const { nome, email, senha } = req.body;
 
-    const sql = `
-        INSERT INTO usuarios (nome, email, senha)
-        VALUES (?, ?, ?)
-    `;
-
-    db.query(sql, [nome, email, senha], (err, result) => {
-
-        if(err){
-            console.log(err);
-            res.send('Erro ao cadastrar usuário');
-            return;
+    db.query(
+        'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
+        [nome, email, senha],
+        (err) => {
+            if (err) return res.status(500).send('Erro');
+            res.send('Usuário cadastrado!');
         }
-
-        res.send('Usuário cadastrado!');
-
-    });
-
+    );
 });
+
+/* 🔥 DELETE USUÁRIO (COM CASCATA MANUAL) */
 app.delete('/usuarios/:id', (req, res) => {
 
     const id = req.params.id;
 
-    const sql = 'DELETE FROM usuarios WHERE id = ?';
+    db.query(
+        'DELETE FROM usuarios WHERE id = ?',
+        [id],
+        (err) => {
 
-    db.query(sql, [id], (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send('Erro ao excluir usuário');
+            }
 
-        if(err){
-            console.log(err);
-            res.send('Erro ao deletar');
-            return;
+            res.json({
+                sucesso: true,
+                mensagem: 'Conta excluída com sucesso'
+            });
+
         }
-
-        res.send('Usuário deletado');
-
-    });
+    );
 
 });
-app.put('/usuarios/:id', (req, res) => {
-
-    const id = req.params.id;
-
-    const { nome, email, senha } = req.body;
-
-    const sql = `
-        UPDATE usuarios
-        SET nome = ?, email = ?, senha = ?
-        WHERE id = ?
-    `;
-
-    db.query(sql, [nome, email, senha, id], (err, result) => {
-
-        if(err){
-            console.log(err);
-            res.send('Erro ao atualizar usuário');
-            return;
-        }
-
-        res.send('Usuário atualizado!');
-
-    });
-
-});
+/* LOGIN */
 app.post('/login', (req, res) => {
 
     const { email, senha } = req.body;
 
-    const sql = `
-        SELECT * FROM usuarios
-        WHERE email = ?
-        AND senha = ?
-    `;
+    db.query(
+        'SELECT * FROM usuarios WHERE email = ? AND senha = ?',
+        [email, senha],
+        (err, result) => {
 
-    db.query(sql, [email, senha], (err, result) => {
+            if (err) return res.status(500).send('Erro');
 
-        if(err){
-            console.log(err);
-            res.send('Erro no servidor');
-            return;
+            if (result.length > 0) {
+                res.json({
+                    sucesso: true,
+                    mensagem: 'Login ok',
+                    usuario: result[0]
+                });
+            } else {
+                res.json({
+                    sucesso: false,
+                    mensagem: 'Credenciais inválidas'
+                });
+            }
         }
-
-        if(result.length > 0){
-
-            res.json({
-                sucesso: true,
-                mensagem: 'Login realizado!',
-                usuario: result[0]
-            });
-
-        }else{
-
-            res.json({
-                sucesso: false,
-                mensagem: 'Email ou senha inválidos'
-            });
-
-        }
-
-    });
-
+    );
 });
+
+/* =====================
+   TRANSAÇÕES
+===================== */
+
 app.get('/transacoes', (req, res) => {
 
     const usuario_id = req.query.usuario_id;
 
-    const sql = `
-        SELECT * FROM transacao
-        WHERE usuario_id = ?
-    `;
-
-    db.query(sql, [usuario_id], (err, result) => {
-
-        if(err){
-
-            console.log(err);
-
-            res.status(500).send('Erro ao buscar transações');
-
-            return;
-
+    db.query(
+        'SELECT * FROM transacao WHERE usuario_id = ?',
+        [usuario_id],
+        (err, result) => {
+            if (err) return res.status(500).send('Erro');
+            res.json(result);
         }
-
-        res.json(result);
-
-    });
-
+    );
 });
+
 app.post('/transacoes', (req, res) => {
 
     const {
-
         descricao,
         valor,
         tipo,
         categoria_gasto,
         usuario_id
-
     } = req.body;
 
-    const sql = `
+    db.query(
+        `INSERT INTO transacao 
+        (descricao, valor, tipo_transacao, categoria_gasto, usuario_id)
+        VALUES (?, ?, ?, ?, ?)`,
+        [descricao, valor, tipo, categoria_gasto, usuario_id],
+        (err) => {
+            if (err) return res.status(500).send('Erro');
+            res.send('Transação criada!');
+        }
+    );
+});
 
-        INSERT INTO transacao
-        (
-            descricao,
-            valor,
-            tipo_transacao,
-            categoria_gasto,
-            usuario_id
-        )
-
-        VALUES (?, ?, ?, ?, ?)
-
-    `;
+app.delete('/transacoes/:id', (req, res) => {
 
     db.query(
-
-        sql,
-
-        [
-            descricao,
-            valor,
-            tipo,
-            categoria_gasto,
-            usuario_id
-        ],
-
-        (erro) => {
-
-            if(erro){
-
-                console.log(erro);
-
-                return res
-                .status(500)
-                .send('Erro');
-
-            }
-
-            res.send(
-                'Transação cadastrada!'
-            );
-
+        'DELETE FROM transacao WHERE id_transacao = ?',
+        [req.params.id],
+        (err) => {
+            if (err) return res.status(500).send('Erro');
+            res.send('Transação deletada');
         }
-
     );
-
 });
-app.delete('/transacoes/:id', (req, res) => {
+
+app.put('/transacoes/:id', (req, res) => {
+
+    const { descricao, valor, tipo, categoria_gasto } = req.body;
+
+    db.query(
+        `UPDATE transacao 
+        SET descricao=?, valor=?, tipo_transacao=?, categoria_gasto=? 
+        WHERE id_transacao=?`,
+        [descricao, valor, tipo, categoria_gasto, req.params.id],
+        (err) => {
+            if (err) return res.status(500).send('Erro');
+            res.send('Atualizado!');
+        }
+    );
+});
+
+/* =====================
+   METAS
+===================== */
+
+app.get('/metas', (req, res) => {
+
+    db.query(
+        'SELECT * FROM planejamento_financeiro WHERE usuario_id = ?',
+        [req.query.usuario_id],
+        (err, result) => {
+            if (err) return res.status(500).send('Erro');
+            res.json(result);
+        }
+    );
+});
+
+app.post('/metas', (req, res) => {
+
+    const { nome, valor_meta, data_fim, usuario_id } = req.body;
+
+    db.query(
+        `INSERT INTO planejamento_financeiro 
+        (nome, valor_meta, data_fim, usuario_id)
+        VALUES (?, ?, ?, ?)`,
+        [nome, valor_meta, data_fim, usuario_id],
+        (err) => {
+            if (err) return res.status(500).send('Erro');
+            res.send('Meta criada!');
+        }
+    );
+});
+
+app.put('/metas/:id', (req, res) => {
+
+    const { nome, valor_meta, data_fim } = req.body;
+
+    db.query(
+        `UPDATE planejamento_financeiro 
+        SET nome=?, valor_meta=?, data_fim=? 
+        WHERE id=?`,
+        [nome, valor_meta, data_fim, req.params.id],
+        (err) => {
+            if (err) return res.status(500).send('Erro');
+            res.send('Meta atualizada!');
+        }
+    );
+});
+
+app.delete('/metas/:id', (req, res) => {
+
+    db.query(
+        'DELETE FROM planejamento_financeiro WHERE id = ?',
+        [req.params.id],
+        (err) => {
+            if (err) return res.status(500).send('Erro');
+            res.send('Meta deletada');
+        }
+    );
+});
+
+/* ===================== */
+
+app.listen(3000, () => {
+    console.log('Servidor rodando na porta 3000');
+});
+app.put('/usuarios/:id', (req, res) => {
 
     const id = req.params.id;
 
-    const sql =
-    'DELETE FROM transacao WHERE id_transacao = ?';
-
-    db.query(sql, [id], (err) => {
-
-        if(err){
-
-            console.log(err);
-
-            res.status(500)
-            .send('Erro ao excluir');
-
-            return;
-
-        }
-
-        res.send('Transação excluída!');
-
-    });
-
-});
-app.put('/transacoes/:id', (req, res) => {
-
-    const { id } = req.params;
-
     const {
-
-        descricao,
-        valor,
-        tipo,
-        categoria_gasto
-
+        nome,
+        email,
+        senha,
+        limite_gastos
     } = req.body;
 
     const sql = `
-
-        UPDATE transacao
-
-        SET
-
-            descricao = ?,
-            valor = ?,
-            tipo_transacao = ?,
-            categoria_gasto = ?
-
-        WHERE id_transacao = ?
-
+        UPDATE usuarios
+        SET nome = ?, email = ?, senha = ?, limite_gastos = ?
+        WHERE id = ?
     `;
 
     db.query(
-
         sql,
+        [nome, email, senha, limite_gastos, id],
+        (err) => {
 
-        [
-            descricao,
-            valor,
-            tipo,
-            categoria_gasto,
-            id
-        ],
-
-        (erro) => {
-
-            if(erro){
-
-                console.log(erro);
-
-                return res
-                .status(500)
-                .send('Erro');
-
+            if (err) {
+                console.log(err);
+                return res.status(500).send('Erro ao atualizar usuário');
             }
 
-            res.send(
-                'Transação atualizada!'
-            );
-
+            res.send('Usuário atualizado!');
         }
-
     );
-
 });
