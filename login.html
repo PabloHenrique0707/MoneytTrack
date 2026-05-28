@@ -1,89 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-    content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MoneyTrack Login</title>
-
     <link rel="stylesheet" href="style.css">
-
 </head>
-<body>
+
+<body class="login">
 
     <div class="login-container">
 
-        <!-- LOGIN -->
-
         <div id="loginBox">
-
             <h1>MoneyTrack 💸</h1>
 
-            <input
-            type="email"
-            id="email"
-            placeholder="Email">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="senha" placeholder="Senha">
 
-            <input
-            type="password"
-            id="senha"
-            placeholder="Senha">
+            <button onclick="fazerLogin()">Entrar</button>
 
-            <button onclick="fazerLogin()">
-                Entrar
-            </button>
-
-            <p onclick="mostrarCadastro()"
-            class="trocar">
-
+            <p onclick="mostrarCadastro()" class="trocar">
                 Criar conta
-
             </p>
-
         </div>
 
-        <!-- CADASTRO -->
-
         <div id="cadastroBox">
-
             <h1>Criar Conta 💸</h1>
 
-            <input
-            type="text"
-            id="nomeCadastro"
-            placeholder="Nome">
-
-            <input
-            type="email"
-            id="emailCadastro"
-            placeholder="Email">
-
-            <input
-            type="password"
-            id="senhaCadastro"
-            placeholder="Senha">
+            <input type="text" id="nomeCadastro" placeholder="Nome">
+            <input type="email" id="emailCadastro" placeholder="Email">
+            <input type="password" id="senhaCadastro" placeholder="Senha">
 
             <button onclick="cadastrarNovoUsuario()">
                 Cadastrar
             </button>
 
-            <p onclick="mostrarLogin()"
-            class="trocar">
-
+            <p onclick="mostrarLogin()" class="trocar">
                 Já tenho conta
-
             </p>
-
         </div>
 
     </div>
 
-    <script src="script.js"></script>
-
     <div id="popup"></div>
+
+    <script src="script.js"></script>
 
 </body>
 </html>
