@@ -34,7 +34,7 @@
                     <div>
 
                         <h3 id="nomePerfil">
-                            Usuário
+                        Usuário
                         </h3>
 
                     </div>
@@ -46,23 +46,24 @@
             <ul>
 
                 <li onclick="abrirDashboard()">
-                    🏠 Dashboard
+                    Dashboard
                 </li>
 
                 <li onclick="abrirTransacoes()">
-                    💰 Transações
+                    Transações
                 </li>
 
-                <li>
-                    🎯 Metas
+                
+                <li onclick="abrirMetas()">
+                    Metas
                 </li>
 
                 <li onclick="abrirPerfil()">
-                    👤 Perfil
+                    Perfil
                 </li>
 
                 <li onclick="logout()">
-                    🚪 Logout
+                    Logout
                 </li>
 
             </ul>
@@ -82,12 +83,12 @@
                     <div>
 
                         <h1 class="titulo-dashboard">
-                            Dashboard Financeira 💸
+                            Dashboard Financeira
                         </h1>
 
-                        <p class="subtitulo">
-                            Controle total da sua vida financeira
-                        </p>
+                        <button onclick="gerarRelatorio()" class="botao-relatorio">
+                            Gerar relatório
+                        </button>
 
                     </div>
 
@@ -133,6 +134,8 @@
 
                 </section>
 
+                <div id="alertaLimite"></div>
+
                 <!-- ÚLTIMAS TRANSAÇÕES -->
 
                 <section class="ultimas-transacoes">
@@ -152,7 +155,7 @@
                 <section class="grafico-area">
 
     <h2>
-        Visão Financeira 📊
+        Visão Financeira
     </h2>
 
     <canvas id="graficoFinanceiro"></canvas>
@@ -166,10 +169,33 @@
             <section id="transacoesArea"
             style="display: none;">
 
+            <div class="filtros">
+
+    <select id="filtroTipo" onchange="filtrarTransacoes()">
+        <option value="">Todos tipos</option>
+        <option value="receita">Receita</option>
+        <option value="despesa">Despesa</option>
+    </select>
+
+    <select id="filtroCategoria" onchange="filtrarTransacoes()">
+        <option value="">Todas categorias</option>
+        <option value="Alimentação">Alimentação</option>
+        <option value="Transporte">Transporte</option>
+        <option value="Lazer">Lazer</option>
+        <option value="Salário">Salário</option>
+        <option value="Outros">Outros</option>
+    </select>
+
+    <input type="number" id="filtroMin" placeholder="Valor mín" oninput="filtrarTransacoes()">
+
+    <input type="number" id="filtroMax" placeholder="Valor máx" oninput="filtrarTransacoes()">
+
+</div>
+
                 <div class="titulo-secao">
 
                     <h1>
-                        Transações 💰
+                        Transações 
                     </h1>
 
                 </div>
@@ -216,9 +242,11 @@
                         placeholder="Descrição">
 
                         <input
-                        type="number"
+                        type="text"
                         id="valor"
-                        placeholder="Valor">
+                        placeholder="Valor"
+                        oninput="aplicarMascaraMoeda(this)">
+                        
 
                         <select id="tipo">
 
@@ -235,23 +263,23 @@
                         <select id="categoria">
 
     <option value="Alimentação">
-        🍔 Alimentação
+        Alimentação
     </option>
 
     <option value="Transporte">
-        🚗 Transporte
+        Transporte
     </option>
 
     <option value="Lazer">
-        🎮 Lazer
+        Lazer
     </option>
 
     <option value="Salário">
-        💼 Salário
+        Salário
     </option>
 
     <option value="Outros">
-        📦 Outros
+        Outros
     </option>
 
 </select>
@@ -277,6 +305,36 @@
                 </section>
 
             </section>
+
+            <!-- METAS -->
+
+<section
+id="metasArea"
+style="display: none;">
+
+    <div class="titulo-secao">
+
+        <h1>
+            Metas Financeiras
+        </h1>
+
+        <button
+        class="botao-meta"
+        onclick="abrirModalMeta()">
+
+            + Nova Meta
+
+        </button>
+
+    </div>
+
+    <div
+    id="listaMetas"
+    class="lista-metas">
+
+    </div>
+
+</section>
 
             <!-- PERFIL -->
 
@@ -306,7 +364,9 @@
 
                     </div>
 
-                    
+                    <button onclick="abrirConfirmExclusaoConta()">
+                            Excluir conta
+                    </button>
 
                     <button
                     class="botao-editar"
@@ -335,6 +395,11 @@
     <div class="modal-conteudo">
 
         <h2>Editar Perfil</h2>
+
+        <input
+        type="number"
+        id="editarLimite"
+        placeholder="Limite de gastos (R$)">
 
         <input
         type="text"
@@ -385,7 +450,9 @@ class="modal">
         <input
         type="number"
         id="editarValor"
-        placeholder="Valor">
+        placeholder="Valor"
+        min="0"
+        step="0.01">
 
         <select id="editarTipo">
 
@@ -422,6 +489,69 @@ class="modal">
 
     </div>
 
+</div>
+
+<!-- MODAL META -->
+
+<div
+id="modalMeta"
+class="modal">
+
+    <div class="modal-conteudo">
+
+        <h2>
+            Nova Meta
+        </h2>
+
+        <input
+            type="text"
+            id="nomeMeta"
+            placeholder="Nome da meta">
+
+        <input
+            type="text"
+            id="valorMeta"
+            placeholder="Valor da meta"
+            oninput="aplicarMascaraMoeda(this)">
+
+        <input
+            type="date"
+            id="prazoMeta">
+
+        <div class="modal-botoes">
+
+            <button onclick="salvarMeta()">
+                Salvar
+            </button>
+
+            <button onclick="fecharModalMeta()">
+                Cancelar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<div id="modalConfirm" class="modal">
+    <div class="modal-conteudo">
+
+        <h2>Tem certeza?</h2>
+        <p>Essa ação não pode ser desfeita.</p>
+
+        <div class="modal-botoes">
+
+            <button onclick="excluirContaConfirmada()">
+                Sim, excluir
+            </button>
+
+            <button onclick="fecharModalConfirm()">
+                Cancelar
+            </button>
+
+        </div>
+
+    </div>
 </div>
 
 </body>
